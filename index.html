@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recovery Radio – Rap & R&B Station</title>
+<style>
+:root{
+  --bg:#0f172a; /* slate-900 */
+  --panel:#111827; /* gray-900 */
+  --ink:#e5e7eb; /* gray-200 */
+  --muted:#94a3b8; /* slate-400 */
+  --accent:#22d3ee; /* cyan-400 */
+  --accent2:#a78bfa; /* violet-400 */
+  --border:#1f2937; /* gray-800 */
+  --card:#0b1220;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+a{color:var(--accent)}
+.wrap{display:grid;grid-template-columns:280px 1fr;gap:16px;max-width:1200px;margin:0 auto;padding:20px}
+.sidebar{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.sidehead{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;letter-spacing:.3px}
+.songlist{max-height:calc(100vh - 220px);overflow:auto}
+.songbtn{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.songbtn:hover,.songbtn.active{background:#0b1220}
+.small{font-size:12px;color:var(--muted);padding:10px 14px}
+
+.main{display:grid;grid-template-rows:auto 1fr auto;gap:12px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:0;color:#001018;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer}
+.btn.alt{background:#1f2937;color:var(--ink);border:1px solid var(--border)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:18px}
+.cardtitle{font-size:20px;font-weight:800;margin:0 0 8px}
+.meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:6px}
+.audiobar{margin-top:8px}
+
+.lyrics.two-cols{column-count:2;column-gap:24px}
+.lyrics h4{margin:10px 0 6px;font-size:14px;letter-spacing:.4px;color:var(--muted);text-transform:uppercase}
+.lyrics p{white-space:pre-wrap;margin:0 0 12px}
+
+.backgrid{display:grid;gap:10px}
+.backgrid section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
+.backgrid h4{margin:0 0 6px;font-size:14px;letter-spacing:.4px;color:var(--muted)}
+.backgrid ul{margin:6px 0 0 18px}
+
+.footer{opacity:.8;font-size:12px}
+
+/* Print styles */
+@media print{
+  body{background:white;color:black}
+  .wrap{display:block;padding:0;margin:0}
+  .sidebar,.toolbar,.footer{display:none}
+  .card{break-inside:avoid;border:1px solid #000}
+  .lyrics.two-cols{column-count:2}
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="sidebar">
+      <div class="sidehead">🎤 Recovery Radio – Rap & R&B</div>
+      <div id="songList" class="songlist"></div>
+      <div class="small">Tip: Click a song. Use <b>Flip</b> to switch Front/Back. Use <b>Toggle Columns</b> to switch 1↔2 column lyrics. MP3s play if you add files in <code>/audio</code>.</div>
+      <div class="small">GitHub Pages: Put this file at repo root as <code>index.html</code>. Add your MP3s to <code>/audio</code> with matching names.</div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <button class="btn" id="flipBtn">Flip: Front / Back</button>
+        <button class="btn alt" id="toggleColumns">Toggle 1↔2 Columns</button>
+        <button class="btn alt" id="printBtn">🖨️ Print</button>
+      </div>
+
+      <article class="card" id="card"></article>
+
+      <div class="footer">© Recovery Radio – Rap & R&B Station • For educational/therapeutic use</div>
+    </main>
+  </div>
+
+<script>
+const SONGS = [
+  {
+    id:"one-more-day",
+    title:"One More Day (Clean Version)",
+    audio:"one-more-day.mp3",
+    sections:[
+      {label:"Verse 1", text:`Woke up this morning with a heavy heart,
+But I ain’t lettin’ yesterday tear me apart.
+Scars on my soul, yeah they tell my story,
+But pain don’t define me, it’s just territory.`},
+      {label:"Chorus", text:`If I can make it through today, tomorrow’s mine to claim.
+Yesterday’s gone, but today ain’t the same.`},
+      {label:"Verse 2", text:`Every setback’s just a setup for a brighter rise,
+I see hope in the mirror when I look in my eyes.
+No more drownin’ in regret, I’m above the tide,
+Got a second chance rhythm, and I walk with pride.`},
+      {label:"Bridge", text:`So if I fall, I’mma stand again,
+‘Cause even broken roads still reach the end.`},
+      {label:"Outro", text:`One more day… that’s all I need.`}
+    ],
+    tieIn:"Recovery is built one day at a time. Yesterday’s mistakes don’t define today’s progress.",
+    questions:[
+      "When has ‘just one more day’ gotten you through a tough moment?",
+      "What do you need to let go of from yesterday?"
+    ],
+    activity:"Each person names one ‘yesterday weight’ to drop and one ‘today strength’ to carry.",
+    takeaway:"Recovery isn’t about forever — it’s about today.",
+    energy:"One word for how you’re feeling today?",
+    life:"End your night by writing down one reason you’re glad you stayed in recovery today."
+  },
+  {
+    id:"detox-flow",
+    title:"Detox Flow",
+    audio:"detox-flow.mp3",
+    sections:[
+      {label:"Hook", text:`Detox flow, let the poison go,
+Clear mind steady, and I’m in control.`},
+      {label:"Verse 1", text:`I traded bottles for blessings, pain for progression,
+Learned my lessons, now I’m aiming at confession.
+Used to chase highs just to hide from lows,
+Now I spit truth on these 808 flows.`},
+      {label:"Verse 2", text:`From the shadows to the spotlight, I rebuild my name,
+Ain’t ashamed of the struggle, I survived the flame.
+Future hittin’, ambition spittin’, sobriety’s lit,
+Every day I wake up, I recommit.`},
+      {label:"Bridge", text:`No lean, no pills, no fog in sight,
+Just beats, just bars, and a soul that’s light.`}
+    ],
+    tieIn:"Detox is more than the body — it’s about clearing toxic thoughts, people, and patterns.",
+    questions:[
+      "What’s one ‘toxin’ you’ve cleared from your life?",
+      "What’s one toxic thought that still sneaks in?"
+    ],
+    activity:"Write down a toxic thought or habit and crumple it; toss in a ‘Detox Bin.’",
+    takeaway:"Recovery clears space for clarity and strength.",
+    energy:"Quick scale: 1 = foggy, 5 = clear. Where are you now?",
+    life:"Start your day with a 2‑minute ‘mental detox’ — deep breath in, let go of one stress on the exhale."
+  },
+  {
+    id:"rehab-remix",
+    title:"Rehab Remix",
+    audio:"rehab-remix.mp3",
+    sections:[
+      {label:"Verse 1", text:`I said no, no, no — but this time I said yes,
+Yes to my healing, yes to progress.
+Turned my back on the lies, on the shame and stress,
+I’m stepping out of darkness, I’m finding success.`},
+      {label:"Chorus", text:`No more chains holdin’ me down,
+I’m rising up, feet on solid ground.`},
+      {label:"Verse 2", text:`From the bottom I rose, scars on my skin,
+But each one reminds me of battles I win.
+The old me’s gone, a new song begins,
+Recovery’s the beat, and it comes from within.`},
+      {label:"Bridge", text:`I said yes to life, and I said yes to peace,
+Yes to the love that never will cease.`}
+    ],
+    tieIn:"Saying ‘yes’ to healing is the turning point from resistance to growth.",
+    questions:[
+      "What’s something in recovery you’ve resisted saying yes to?",
+      "How did saying yes open new doors for you?"
+    ],
+    activity:"Pair up — share one area where you’re ready to say yes. Partners give one supportive response.",
+    takeaway:"Recovery begins with yes.",
+    energy:"What’s your ‘yes word’ today? (Peace, strength, change, etc.)",
+    life:"End the day by writing down one ‘yes’ you’re committing to tomorrow."
+  },
+  {
+    id:"high-off-life",
+    title:"High Off Life",
+    audio:"high-off-life.mp3",
+    sections:[
+      {label:"Verse 1", text:`They said I’d never make it, they said I’d break fast,
+But I found a strength in me I never knew I had.
+No smoke in my lungs, no haze in my brain,
+Just the joy of a sunrise after years of rain.`},
+      {label:"Chorus", text:`No pill, no smoke, no drink in sight,
+I’m high off peace, yeah I’m high off life.`},
+      {label:"Verse 2", text:`Every laugh hits harder than a shot of gin,
+Every hug is a high that begins within.
+Didn’t need a fix, didn’t need that fight,
+I just needed me to believe it’s right.`},
+      {label:"Bridge", text:`Love, faith, hope on repeat…
+That’s the soundtrack keepin’ me on beat.`}
+    ],
+    tieIn:"Joy can come from natural highs — laughter, connection, accomplishment.",
+    questions:[
+      "What’s one ‘natural high’ you’ve experienced in recovery?",
+      "How do you remind yourself joy doesn’t require a substance?"
+    ],
+    activity:"Each person names their favorite natural high. Make a ‘High Off Life’ poster for the wall.",
+    takeaway:"Sobriety brings better highs.",
+    energy:"Raise a hand if you felt a natural high this week.",
+    life:"Choose one natural high to build into your routine this week."
+  },
+  {
+    id:"second-chance-anthem",
+    title:"Second Chance Anthem",
+    audio:"second-chance-anthem.mp3",
+    sections:[
+      {label:"Verse 1", text:`Gave up my chains, now I walk in advance,
+Recovery’s the rhythm, this my second chance.
+Every stumble’s just a prelude to the climb,
+I ain’t wasting no more of this borrowed time.`},
+      {label:"Chorus", text:`Second chance, that’s the song I sing,
+From the ashes I rise, hear the freedom ring.`},
+      {label:"Verse 2", text:`Lost some battles, but I won the war,
+I found myself when I closed that door.
+Hope is the anthem, and love’s the dance,
+Every heartbeat’s proof of a second chance.`},
+      {label:"Bridge", text:`So raise your hands if you’ve felt the fall,
+We’re proof redemption can heal it all.`}
+    ],
+    tieIn:"Redemption is real; progress after setbacks is still progress.",
+    questions:[
+      "Where did you feel a ‘second chance’ in your life?",
+      "What helps you accept grace after a mistake?"
+    ],
+    activity:"Write a two-line ‘second chance’ mantra and speak it aloud as a group.",
+    takeaway:"Falling isn’t the ending — it’s feedback.",
+    energy:"Show of hands: who needs a second chance today?",
+    life:"Practice self-forgiveness tonight; write one thing you’re releasing."
+  },
+  {
+    id:"twelve-steps-ahead",
+    title:"12 Steps Ahead",
+    audio:"twelve-steps-ahead.mp3",
+    sections:[
+      {label:"Verse 1", text:`Step one was honesty, step two was belief,
+Step three was surrender, finally felt relief.
+Every page of the book, every word in red,
+Put life in my veins where I once felt dead.`},
+      {label:"Chorus", text:`One step, two step, don’t stop the stride,
+Twelve steps later, still alive inside.`},
+      {label:"Verse 2", text:`Made amends with the past, left the wreckage behind,
+Now I walk in the light with a peace I find.
+Not perfect, just progress, that’s the path I tread,
+One day at a time keeps my spirit fed.`},
+      {label:"Bridge", text:`When temptation knocks, I just say ‘not today,’
+Recovery’s my anthem, and I’m here to stay.`}
+    ],
+    tieIn:"Structured steps can turn chaos into a clear path.",
+    questions:[
+      "Which ‘step’ concept helps you most right now (honesty, surrender, amends, service)?",
+      "What does ‘progress, not perfection’ look like this week?"
+    ],
+    activity:"Pick one step and list a tiny action you can do today to live it.",
+    takeaway:"Small steps stack into big change.",
+    energy:"1–5: how steady does your stride feel today?",
+    life:"Set a reminder for one daily action that supports your chosen step."
+  },
+  {
+    id:"relapse-rewind",
+    title:"Relapse Rewind",
+    audio:"relapse-rewind.mp3",
+    sections:[
+      {label:"Verse 1", text:`I hit rewind on mistakes I’ve made,
+Learned from the shadows where my demons stayed.
+Fell to the bottom, but I climbed back fast,
+The lessons I learned gonna make me last.`},
+      {label:"Chorus", text:`Rewind the tape, no repeat play,
+Learn from the fall, now I rise today.`},
+      {label:"Verse 2", text:`Every stumble’s a step in disguise,
+Recovery’s truth opened my eyes.
+I don’t erase the past, but I flip the page,
+Stronger than the fire, wiser with age.`},
+      {label:"Bridge", text:`No shame in the story, no fear in the sound,
+Every fall I took built solid ground.`}
+    ],
+    tieIn:"A lapse can be data — use it to strengthen your plan.",
+    questions:[
+      "What warning signs did you miss before a past slip?",
+      "What boundary or tool will you add to your plan now?"
+    ],
+    activity:"Map your ‘replay’: trigger → thought → feeling → action → consequence → new plan.",
+    takeaway:"Review. Revise. Resume recovery.",
+    energy:"Thumbs: down/side/up — how’s your plan feeling today?",
+    life:"Share your top 2 early warning signs with a supporter."
+  },
+  {
+    id:"love-myself",
+    title:"Love Myself (R&B Recovery Ballad)",
+    audio:"love-myself.mp3",
+    sections:[
+      {label:"Verse 1", text:`I looked in the mirror, didn’t know my face,
+Searching for a reason in an empty space.
+I thought love was only what I’d beg to receive,
+But the truth hit me harder — I had to believe.`},
+      {label:"Chorus", text:`Before I love another, I had to find the key,
+Now I love myself, and that’s enough for me.`},
+      {label:"Verse 2", text:`I was chasing validation in the wrong embrace,
+Now I hold compassion in my own safe place.
+Every tear that I shed watered roots of grace,
+Now my heart beats steady at a healing pace.`},
+      {label:"Bridge", text:`Learning love ain’t weakness, it’s the strongest start,
+To heal the world, I had to heal my heart.`}
+    ],
+    tieIn:"Self-compassion is a relapse protector and a relationship reset.",
+    questions:[
+      "What’s one way you can show yourself respect today?",
+      "Where do you confuse self-love with selfishness?"
+    ],
+    activity:"Write a 4-line self-compassion note and keep it in your pocket.",
+    takeaway:"Loving yourself isn’t extra — it’s essential.",
+    energy:"Hands to heart for 5 seconds — notice the shift.",
+    life:"Schedule one boundary this week that protects your peace."
+  },
+  {
+    id:"triggered-but-winning",
+    title:"Triggered but Winning",
+    audio:"triggered-but-winning.mp3",
+    sections:[
+      {label:"Verse 1", text:`Life threw shade, tried to knock me down,
+But I learned to rise when pain came ‘round.
+Every trigger’s a test, but I stand tall,
+Recovery’s armor, I won’t let it fall.`},
+      {label:"Chorus", text:`I don’t fight with fists, I fight with grace,
+Pain tried to swing, but I set the pace.`},
+      {label:"Verse 2", text:`I flipped the script, I wrote my fate,
+Turned anger to healing, turned fear to faith.
+What tried to break me just made me strong,
+Now I spit resilience in every song.`},
+      {label:"Bridge", text:`Victory ain’t silence, it’s my heart still singing,
+Life can try to break me, but I’m still winning.`}
+    ],
+    tieIn:"Trigger ≠ command. Name it, tame it, choose your next best action.",
+    questions:[
+      "What trigger shows up most for you right now?",
+      "Which skills help you ride it out (DBT/ACT/grounding)?"
+    ],
+    activity:"90-second box breathing, then share one skill you’ll use this week.",
+    takeaway:"You set the pace, not the trigger.",
+    energy:"Fist to open palm — choose grace over force.",
+    life:"Text your ‘go-to skill’ to a peer tonight as accountability."
+  },
+  {
+    id:"hope-hold-on-pain-ends",
+    title:"H.O.P.E. (Hold On, Pain Ends)",
+    audio:"hope-hold-on-pain-ends.mp3",
+    sections:[
+      {label:"Verse 1", text:`Nights got heavy, couldn’t see the dawn,
+Felt like the battle would never be gone.
+But the darkest nights birth the brightest skies,
+I found my wings where my spirit lies.`},
+      {label:"Chorus", text:`Hold on tight, pain gon’ bend,
+This ain’t the fall, it’s the start, my friend.`},
+      {label:"Verse 2", text:`Every scar’s a story, every tear a seed,
+Growing gardens of strength from the times I bleed.
+Hope’s not a whisper, it’s a roaring sound,
+That the past won’t keep me bound.`},
+      {label:"Bridge", text:`So I hold to the light when the shadows creep,
+Faith is the promise that my soul will keep.`}
+    ],
+    tieIn:"Hope is a skill — it grows with use, proof, and people.",
+    questions:[
+      "Where did you feel a small spark of hope this week?",
+      "Who helps you borrow hope when yours is low?"
+    ],
+    activity:"3 good things: share 3 micro-wins from the last 24 hours.",
+    takeaway:"Pain bends. You don’t.",
+    energy:"Deep inhale/exhale together — notice the room shift.",
+    life:"Schedule a 10-minute check-in call with a hopeful person."
+  }
+];
+
+let currentId = SONGS[0].id;
+let showBack = false;
+let twoCols = true;
+
+const elList = document.getElementById('songList');
+const elCard = document.getElementById('card');
+
+function renderList(){
+  elList.innerHTML = '';
+  SONGS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'songbtn' + (s.id===currentId ? ' active':'');
+    b.textContent = s.title;
+    b.addEventListener('click', ()=>{ currentId = s.id; update(); });
+    elList.appendChild(b);
+  });
+}
+
+function renderFront(song){
+  const audioPath = song.audio ? `audio/${song.audio}` : null;
+  const audioHtml = audioPath ? `<div class="audiobar"><audio controls preload="none"><source src="${audioPath}" type="audio/mpeg">Your browser does not support audio.</audio></div>` : '';
+
+  const lyricsHtml = song.sections.map(sec => `
+    <h4>${sec.label}</h4>
+    <p>${sec.text}</p>
+  `).join('');
+
+  return `
+    <h2 class="cardtitle">🎤 ${song.title}</h2>
+    <div class="meta"><span>Rap & R&B Station</span><span>Front: Full Lyrics</span></div>
+    ${audioHtml}
+    <div class="lyrics ${twoCols ? 'two-cols':''}">${lyricsHtml}</div>
+  `;
+}
+
+function renderBack(song){
+  const list = (arr)=> arr.map(x=>`<li>${x}</li>`).join('');
+  return `
+    <h2 class="cardtitle">🎤 ${song.title}</h2>
+    <div class="meta"><span>Rap & R&B Station</span><span>Back: Facilitation</span></div>
+    <div class="backgrid">
+      <section><h4>🔑 Recovery Tie-In</h4><p>${song.tieIn}</p></section>
+      <section><h4>❓ Reflection Questions</h4><ul>${list(song.questions)}</ul></section>
+      <section><h4>🎲 Activity</h4><p>${song.activity}</p></section>
+      <section><h4>⚡ Quick Takeaway / Recovery Hook</h4><p>${song.takeaway}</p></section>
+      <section><h4>🌡️ Group Energy Check</h4><p>${song.energy}</p></section>
+      <section><h4>🌍 Life Application</h4><p>${song.life}</p></section>
+    </div>
+  `;
+}
+
+function update(){
+  renderList();
+  const song = SONGS.find(s => s.id===currentId);
+  elCard.innerHTML = showBack ? renderBack(song) : renderFront(song);
+}
+
+document.getElementById('flipBtn').addEventListener('click', ()=>{ showBack = !showBack; update(); });
+document.getElementById('toggleColumns').addEventListener('click', ()=>{ twoCols = !twoCols; update(); });
+document.getElementById('printBtn').addEventListener('click', ()=>{ window.print(); });
+
+update();
+</script>
+</body>
+</html>
